@@ -36,8 +36,20 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Procedural")
             void GenerateTerrain();
 
+    UFUNCTION(BlueprintCallable, Category = "Procedural")
+            void GenerateObjects();
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural")
             UMaterialInterface* Material;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural")
+            UStaticMesh* ObjectToSpawn;
+
+    UFUNCTION(BlueprintCallable, Category="Procedural")
+        float GetGroundHeightAt(FVector Location);
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural")
+            int32 NumberOfObjects = 20;
 
 
 protected:

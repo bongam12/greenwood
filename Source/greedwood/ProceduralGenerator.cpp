@@ -5,6 +5,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "KismetProceduralMeshLibrary.h"
 #include "ProceduralMeshComponent.h"
+#include "Engine/StaticMeshActor.h"
 
 // Sets default values
 AProceduralGenerator::AProceduralGenerator()
@@ -31,6 +32,46 @@ void AProceduralGenerator::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+float AProceduralGenerator::GetGroundHeightAt(FVector Location)
+{
+    FHitResult HitResult;
+    FVector Start = FVector(Location.X, Location.Y, 10000.f);  // way above terrain
+    FVector End   = FVector(Location.X, Location.Y, -10000.f); // way below terrain
+
+    FCollisionQueryParams Params;
+    Params.AddIgnoredActor(this); // ignore self
+
+    if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_WorldStatic, Params))
+    {
+        return HitResult.Location.Z;
+    }
+
+    return 0.f;
+}
+
+void AProceduralGenerator::GenerateObjects()
+{
+   if (!ObjectToSpawn) return;
+
+   for (int32 i = 0; i < NumberOfObjects; i++)
+   {
+       float RandX = FMath::FRandRange(0.f, XSize * Smoothing);
+       float RandY = FMath::FRandRange(0.f, YSize * Smoothing);
+       float Z = GetGroundHeightAt(FVector(RandX, RandY, 0.f));
+
+       FVector SpawnLocation = FVector(RandX, RandY, Z + 10.f); // Offset Z to avoid clipping
+       FRotator SpawnRotation = FRotator::ZeroRotator;
+
+
+       AStaticMeshActor* MeshActor = GetWorld()->SpawnActor<AStaticMeshActor>(SpawnLocation, SpawnRotation);
+       if (MeshActor)
+       {
+           MeshActor->GetStaticMeshComponent()->SetStaticMesh(ObjectToSpawn);
+           MeshActor->SetMobility(EComponentMobility::Movable); // for physics
+       }
+   }
 }
 
 void AProceduralGenerator::GenerateTerrain()
@@ -95,7 +136,10 @@ void AProceduralGenerator::GenerateTerrain()
     MeshComponent->CreateMeshSection(0, Vertices, Triangles, Normals, UVs, VertexColors, Tangents, true);
     MeshComponent->SetMaterial(0, Material);
 
+
 }
+
+
 
 //void AProceduralGenerator::GenerateObjects()
 //{
