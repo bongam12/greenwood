@@ -4,6 +4,8 @@
 #include "ProceduralGenerator.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "KismetProceduralMeshLibrary.h"
+#include "Kismet/GameplayStatics.h"
+#include "GameFramework/Character.h"
 #include "ProceduralMeshComponent.h"
 #include "Engine/StaticMeshActor.h"
 
@@ -22,7 +24,7 @@ AProceduralGenerator::AProceduralGenerator()
 void AProceduralGenerator::BeginPlay()
 {
 	Super::BeginPlay();
-//	GenerateTerrain();
+	GenerateTerrain();
 //	GenerateObjects();
 	
 }
@@ -55,24 +57,47 @@ void AProceduralGenerator::GenerateObjects()
 {
    if (!ObjectToSpawn) return;
 
+   // DON'T multiply by 10! Use the actual terrain size
+   float MaxX = XSize * Smoothing;  // This gives you 100 * 10 = 1000
+   float MaxY = YSize * Smoothing;  // This gives you 100 * 10 = 1000
+
    for (int32 i = 0; i < NumberOfObjects; i++)
    {
-       float RandX = FMath::FRandRange(0.f, XSize * Smoothing);
-       float RandY = FMath::FRandRange(0.f, YSize * Smoothing);
-       float Z = GetGroundHeightAt(FVector(RandX, RandY, 0.f));
+      float RandX = FMath::FRandRange(0.f, MaxX);
+      float RandY = FMath::FRandRange(0.f, MaxY);
 
-       FVector SpawnLocation = FVector(RandX, RandY, Z + 10.f); // Offset Z to avoid clipping
-       FRotator SpawnRotation = FRotator::ZeroRotator;
+      FHitResult HitResult;
+      FVector Start = FVector(RandX, RandY, 10000.f);
+      FVector End   = FVector(RandX, RandY, -10000.f);
 
+      FCollisionQueryParams Params;
+      Params.AddIgnoredActor(this);
 
-       AStaticMeshActor* MeshActor = GetWorld()->SpawnActor<AStaticMeshActor>(SpawnLocation, SpawnRotation);
-       if (MeshActor)
-       {
-           MeshActor->GetStaticMeshComponent()->SetStaticMesh(ObjectToSpawn);
-           MeshActor->SetMobility(EComponentMobility::Movable); // for physics
-       }
+      if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_WorldStatic, Params))
+      {
+          float GroundZ = HitResult.Location.Z;
+
+          // Your pivot is at the bottom (Min Z = -20), so offset UP by that amount
+          float PivotOffset = FMath::Abs(ObjectToSpawn->GetBoundingBox().Min.Z);
+
+          FVector SpawnLocation = FVector(RandX, RandY, GroundZ + PivotOffset);
+          FRotator SpawnRotation = FRotator::ZeroRotator;
+
+          AStaticMeshActor* MeshActor = GetWorld()->SpawnActor<AStaticMeshActor>(SpawnLocation, SpawnRotation);
+          if (MeshActor)
+          {
+              MeshActor->GetStaticMeshComponent()->SetStaticMesh(ObjectToSpawn);
+              MeshActor->SetMobility(EComponentMobility::Movable);
+          }
+      }
+      else
+      {
+          UE_LOG(LogTemp, Error, TEXT("Line trace failed at X:%f Y:%f - Outside terrain bounds (0-%.0f)!"),
+                 RandX, RandY, MaxX);
+      }
    }
 }
+
 
 void AProceduralGenerator::GenerateTerrain()
 {
@@ -86,6 +111,8 @@ void AProceduralGenerator::GenerateTerrain()
     TArray<FVector2D> UVs;
     TArray<FProcMeshTangent> Tangents;
     TArray<FColor> VertexColors;
+
+
 
 //    int XSize = 100;   // number of quads along X
 //    int YSize = 100;   // number of quads along Y
@@ -103,7 +130,7 @@ void AProceduralGenerator::GenerateTerrain()
             float RandomZScale = FMath::FRandRange(-0.1f, 1.0f);
 
             float Z = FMath::PerlinNoise2D(FVector2D(x * 0.1f, y * 0.1f)) * (200.f * RandomZScale); // this is the height and its smoothed with PErlin
-            Vertices.Add(FVector(x * Smoothing, y * Smoothing, Z));
+            Vertices.Add(FVector(x * Smoothing, y *Smoothing, Z));
             UVs.Add(FVector2D((float)x / XSize, (float)y / YSize));
         }
     }
@@ -135,6 +162,23 @@ void AProceduralGenerator::GenerateTerrain()
 
     MeshComponent->CreateMeshSection(0, Vertices, Triangles, Normals, UVs, VertexColors, Tangents, true);
     MeshComponent->SetMaterial(0, Material);
+
+    MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+    MeshComponent->SetCollisionObjectType(ECC_WorldStatic);
+    // Adjust Character Heigh
+
+    ACharacter* PlayerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+    if (PlayerCharacter)
+    {
+        FVector PlayerLocation = PlayerCharacter->GetActorLocation();
+        float GroundZ = GetGroundHeightAt(PlayerLocation);
+        float PlayerHeight = PlayerCharacter->GetSimpleCollisionHalfHeight();
+
+        PlayerCharacter->SetActorLocation(FVector(PlayerLocation.X, PlayerLocation.Y, GroundZ + PlayerHeight));
+    }
+
+    // After generating terrain, generate objects
+    GenerateObjects();
 
 
 }
