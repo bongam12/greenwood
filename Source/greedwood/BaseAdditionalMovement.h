@@ -14,13 +14,22 @@ class GREEDWOOD_API ABaseAdditionalMovement : public ACharacter
 public:
 	// Sets default values for this character's properties
 	ABaseAdditionalMovement();
+	//bool bSlowWalkState
+
+
+
 
 	UFUNCTION(BlueprintCallable, Category = "BaseMovement")
         void ForwardDash();
 
+	UFUNCTION(BlueprintCallable, Category = "BaseMovement")
+		void LoadCharacterPreset();
 
     UFUNCTION(BlueprintCallable, Category = "BaseMovement")
-        void SlowWalk();
+        void SlowWalk(bool bIsSlowWalking);
+    
+
+
 
 protected:
 	// Called when the game starts or when spawned

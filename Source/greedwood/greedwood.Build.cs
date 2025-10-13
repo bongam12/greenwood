@@ -8,9 +8,27 @@ public class greedwood : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "ProceduralMeshComponent" });
+		// Add the module's root directory to the include paths
+		PublicIncludePaths.Add(ModuleDirectory);
+		
+        PublicDependencyModuleNames.AddRange(new string[] {
+			"Core", 
+			"CoreUObject", 
+			"Engine", 
+			"InputCore", 
+			"EnhancedInput",
+			"ProceduralMeshComponent", 
+			"AIModule", 
+			"GameplayTasks", 
+			"NavigationSystem",
+			"GameplayStateTreeModule",
+			"StateTreeModule",
+			"UMG",
+			"Slate",
+			"SlateCore"
+		});
 
-        PrivateDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "ProceduralMeshComponent" });
+        PrivateDependencyModuleNames.AddRange(new string[] {  });
 
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });

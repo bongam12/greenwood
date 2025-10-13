@@ -6,7 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "ProceduralMeshComponent.h"
 #include "Materials/MaterialInterface.h"
-
+#include "Engine/StaticMesh.h"
 #include "ProceduralGenerator.generated.h"
 
 
@@ -43,13 +43,13 @@ public:
             UMaterialInterface* Material;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural")
-            UStaticMesh* ObjectToSpawn;
+            TArray<TSoftObjectPtr<UStaticMesh>> ObjectsToSpawn;
 
     UFUNCTION(BlueprintCallable, Category="Procedural")
         float GetGroundHeightAt(FVector Location);
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Procedural")
-            int32 NumberOfObjects = 20;
+            TArray<int32> NumberOfObjectsPerType;
 
 
 protected:

@@ -9,6 +9,9 @@ ABaseAdditionalMovement::ABaseAdditionalMovement()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	
+
+
 
 }
 
@@ -33,34 +36,50 @@ void ABaseAdditionalMovement::SetupPlayerInputComponent(UInputComponent* PlayerI
 
 }
 
+void ABaseAdditionalMovement::LoadCharacterPreset()
+{
+    // Load character preset here - set to normal walk speed (300)
+    GetCharacterMovement()->MaxWalkSpeed = 200.0f;
+    UE_LOG(LogTemp, Warning, TEXT("***********Character Preset Loaded - Speed set to 300**************"));
+}
+
 void ABaseAdditionalMovement::ForwardDash()
 {
     // TEST: This is a test change to verify compilation
     // Implement dash functionality here
-    FVector ForwardVector = GetActorForwardVector();//    SetActorLocation(DashLocation);
-    FVector MediumForwardDash = ForwardVector * 4000.0f;
-//    LaunchCharacter(ForwardVector * 600.0f, true, true);
-    LaunchCharacter(MediumForwardDash, true, true);
+    FVector DashVector = GetVelocity().GetSafeNormal();
+    if (DashVector.IsNearlyZero())
+    {
+        DashVector = GetActorForwardVector();
+    }
+
+    FVector MediumForwardDash = DashVector * 2000.0f;
+    // Only dash if character is on the ground (not falling)
+    if (!GetCharacterMovement()->IsFalling())
+    {
+       LaunchCharacter(MediumForwardDash, true, true);
+    }
 
 }
 
-void ABaseAdditionalMovement::SlowWalk()
+void ABaseAdditionalMovement::SlowWalk(bool bIsSlowWalking)
 {
     // Implement walk functionality here
-    // Get current MaxWalkSpeed
-    float CurrentMaxSpeed = GetCharacterMovement()->MaxWalkSpeed;
-    // If current speed is greater than 150, set to 150
-    if (CurrentMaxSpeed > 300.0f)
-    {
-        GetCharacterMovement()->MaxWalkSpeed = 300.0f;
-        return;
-    }
-    else
-    {
-        // If current speed is less than or equal to 150, reset to default speed (600)
-        GetCharacterMovement()->MaxWalkSpeed = 600.0f;
-        return;
-    }
+    // bSlowWalkState is set from Blueprint before calling this function
+
+	if (bIsSlowWalking)
+	{
+		// When sprint is active, increase walk speed
+		GetCharacterMovement()->MaxWalkSpeed = 400.0f;
+		UE_LOG(LogTemp, Warning, TEXT("SlowWalk ACTIVE - Speed set to 300"));
+	}
+	else
+	{
+		// When slow walk is not active, use normal walk speed
+		GetCharacterMovement()->MaxWalkSpeed = 200.0f;
+		UE_LOG(LogTemp, Warning, TEXT("SlowWalk INACTIVE - Speed set to 200"));
+	}
 
 }
+
 
