@@ -39,7 +39,7 @@ void ABaseAdditionalMovement::SetupPlayerInputComponent(UInputComponent* PlayerI
 void ABaseAdditionalMovement::LoadCharacterPreset()
 {
     // Load character preset here - set to normal walk speed (300)
-    GetCharacterMovement()->MaxWalkSpeed = 200.0f;
+    GetCharacterMovement()->MaxWalkSpeed = 150.0f;
     UE_LOG(LogTemp, Warning, TEXT("***********Character Preset Loaded - Speed set to 300**************"));
 }
 
@@ -53,7 +53,7 @@ void ABaseAdditionalMovement::ForwardDash()
         DashVector = GetActorForwardVector();
     }
 
-    FVector MediumForwardDash = DashVector * 2000.0f;
+    FVector MediumForwardDash = DashVector * 200.0f;
     // Only dash if character is on the ground (not falling)
     if (!GetCharacterMovement()->IsFalling())
     {
@@ -70,7 +70,7 @@ void ABaseAdditionalMovement::SlowWalk(bool bIsSlowWalking)
 	if (bIsSlowWalking)
 	{
 		// When sprint is active, increase walk speed
-		GetCharacterMovement()->MaxWalkSpeed = 400.0f;
+		GetCharacterMovement()->MaxWalkSpeed = 300.0f;
 		UE_LOG(LogTemp, Warning, TEXT("SlowWalk ACTIVE - Speed set to 300"));
 	}
 	else
