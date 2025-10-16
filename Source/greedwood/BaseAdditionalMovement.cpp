@@ -39,7 +39,7 @@ void ABaseAdditionalMovement::SetupPlayerInputComponent(UInputComponent* PlayerI
 void ABaseAdditionalMovement::LoadCharacterPreset()
 {
     // Load character preset here - set to normal walk speed (300)
-    GetCharacterMovement()->MaxWalkSpeed = 150.0f;
+    GetCharacterMovement()->MaxWalkSpeed = 200.0f;
     UE_LOG(LogTemp, Warning, TEXT("***********Character Preset Loaded - Speed set to 300**************"));
 }
 
